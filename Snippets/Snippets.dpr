@@ -34,7 +34,7 @@ uses
 
 resourcestring
   SName = 'スニペット';
-  SVersion = '2.0.2';
+  SVersion = '2.0.5';
 
 const
   IDS_MENU_TEXT = 1;
@@ -116,15 +116,15 @@ var
   procedure AppendMenuFunc(TabIndentLevel, LineIndex: NativeInt; Text: string);
   begin
     if CheckStrInTable(Text, '-') = itAllInclude then
-      AppendMenuW(PopupArray[TabIndentLevel], MF_SEPARATOR, 0, '')
+      AppendMenu(PopupArray[TabIndentLevel], MF_SEPARATOR, 0, '')
     else if WordCount(Text, [TAB], dmUserFriendly) = 1 then
-      AppendMenuW(PopupArray[TabIndentLevel], MF_STRING, LineIndex + 1, PChar(Copy(Text, 0, 16)))
-    else
-      AppendMenuW(PopupArray[TabIndentLevel], MF_STRING, LineIndex + 1, PChar(WordGet(Text, [TAB], 0, dmUserFriendly)));
+      AppendMenu(PopupArray[TabIndentLevel], MF_STRING, LineIndex + 1, PChar(Copy(Text, 0, 16)))
+    else if WordCount(Text, [TAB], dmUserFriendly) > 1 then
+      AppendMenu(PopupArray[TabIndentLevel], MF_STRING, LineIndex + 1, PChar(WordGet(Text, [TAB], 0, dmUserFriendly)));
   end;
   procedure AppendMenuPopFunc(TabIndentLevel: NativeInt; Text: string);
   begin
-    AppendMenuW(PopupArray[TabIndentLevel], MF_POPUP,
+    AppendMenu(PopupArray[TabIndentLevel], MF_POPUP,
       PopupArray[TabIndentLevel + 1],
       PChar(Text));
   end;
@@ -181,12 +181,16 @@ begin
     end;
     if List.Count <> 0 then
       AppendMenu(PopupArray[0], MF_SEPARATOR, 0, '');
-    AppendMenuW(PopupArray[0], MenuOption(False, not(Editor_GetSelType(hwnd) = SEL_TYPE_NONE)), List.Count + 1, '選択範囲を登録');
+    AppendMenu(PopupArray[0], MenuOption(False, not(Editor_GetSelType(hwnd) = SEL_TYPE_NONE)), List.Count + 1, '選択範囲を登録');
     AppendMenu(PopupArray[0], MF_STRING, List.Count + 2, 'スニペットを編集...');
     if (GetKeyState(VK_SHIFT) and $80 > 0) or (GetKeyState(VK_CONTROL) and $80 > 0) then
       Editor_GetCaretPos(hwnd, POS_DEV, @CaretPoint)
     else
+{$IF CompilerVersion > 22.9}
+      Winapi.Windows.GetCursorPos(CaretPoint);
+{$ELSE}
       Windows.GetCursorPos(CaretPoint);
+{$IFEND}
     PopupMenuResult := NativeInt(TrackPopupMenu(PopupArray[0], TPM_RETURNCMD, CaretPoint.X, CaretPoint.Y, 0, hwnd, nil));
     Editor_Redraw(hwnd, False);
     try
@@ -284,5 +288,6 @@ exports
   PluginProc;
 
 begin
+  // ReportMemoryLeaksOnShutdown := True;
 
 end.
