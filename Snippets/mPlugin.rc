@@ -2,7 +2,7 @@
 #define IDS_STATUS_MESSAGE 2
 #define IDI_ICON 101
 
-IDI_ICON ICON "Snippet_Icon.ico"
+IDI_ICON ICON "Snippets_Icon.ico"
 
 STRINGTABLE
 LANGUAGE LANG_JAPANESE, 0x1
